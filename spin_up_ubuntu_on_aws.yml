@@ -1,0 +1,78 @@
+---
+  - name: Provision an EC2 Instance
+    hosts: local
+    connection: local
+    gather_facts: False
+    tags: provisioning
+    # Necessary Variables for creating/provisioning the EC2 Instance
+    vars:
+      instance_type: t2.micro
+      security_group: ansible
+      image: ami-f90a4880
+      keypair: ansible
+      region: eu-west-1
+      count: 1
+      key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+
+    vars_files:
+      - vars.yml
+      - sts_vars.yml
+
+    # Task that will be used to Launch/Create an EC2 Instance
+    tasks:
+
+      - debug: msg="{{ key }} is an environment variable"
+      - debug: msg="{{ aws_access_key }} is an key "
+
+      - name: Dump all vars
+        action: template src=dumpall.j2 dest=/tmp/ansible.all`
+
+      - name: AWS Get STS Credentials
+        local_action:
+          module: sts_assume_role
+          profile: "{{sts_profile}}"
+          region: "{{region}}"
+          mfa_serial_number: "{{sts_mfa | default(omit)}}"
+          mfa_token: "{{sts_mfatoken | default(omit)}}"
+          role_arn: "{{sts_role_arn}}"
+          role_session_name: "{{sts_role_session_name}}"
+        register: assumed_role
+        when: sts
+
+      - debug: msg="{{ hostvars }} is an key "
+      - debug: msg="{{ hostvars['localhosts'] }} is an key "
+      - debug: msg="{{ hostvars['localhosts']['assumed_role'].sts_creds }} is an creds "
+      - name: Retreive STS Credentials
+        set_fact:
+          sts_aws_access_key: "{{ hostvars['localhosts']['assumed_role'].sts_creds.access_key }}"
+          sts_aws_secret_key: "{{ hostvars['localhosts']['assumed_role'].sts_creds.secret_key }}"
+          sts_security_token: "{{ hostvars['localhosts']['assumed_role'].sts_creds.session_token }}"
+        when: sts
+
+      - name: Create a security group
+        local_action: 
+          module: ec2_group
+          aws_access_key: "{{ sts_aws_access_key | default(omit) }}"
+          aws_secret_key: "{{ sts_aws_secret_key | default(omit) }}"
+          security_token: "{{ sts_security_token | default(omit) }}"
+          name: "{{ security_group }}"
+          description: Security Group for webserver Servers
+          region: "{{ region }}"
+          rules:
+            - proto: tcp
+              from_port: 22
+              to_port: 22
+              cidr_ip: 0.0.0.0/0
+            - proto: tcp
+              from_port: 80
+              to_port: 80
+              cidr_ip: 0.0.0.0/0
+            - proto: tcp
+              from_port: 443
+              to_port: 443
+              cidr_ip: 0.0.0.0/0
+          rules_egress:
+            - proto: all
+              cidr_ip: 0.0.0.0/0
+        register: basic_firewall
+
