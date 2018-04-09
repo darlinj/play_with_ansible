@@ -1,0 +1,83 @@
+---
+- debug: msg="{{ aws_access_key }} is an key"
+
+- name: Dump all vars
+  action: template src=dumpall.j2 dest=/tmp/ansible.all
+
+- name: AWS Get STS Credentials
+  local_action:
+    module: sts_assume_role
+    profile: "{{sts_profile}}"
+    region: "{{region}}"
+    mfa_serial_number: "{{sts_mfa | default(omit)}}"
+    mfa_token: "{{sts_mfatoken | default(omit)}}"
+    role_arn: "{{sts_role_arn}}"
+    role_session_name: "{{sts_role_session_name}}"
+  register: assumed_role
+  when: sts
+
+- block:
+
+  - name: Create a security group
+    local_action: 
+      module: ec2_group
+      name: "{{ security_group }}"
+      description: Security Group for webserver Servers
+      region: "{{ region }}"
+      rules:
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 80
+          to_port: 80
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 443
+          to_port: 443
+          cidr_ip: 0.0.0.0/0
+      rules_egress:
+        - proto: all
+          cidr_ip: 0.0.0.0/0
+    register: basic_firewall
+
+  - name: Launch the new EC2 Instance
+    local_action: ec2 
+                  group={{ security_group }} 
+                  instance_type={{ instance_type}} 
+                  image={{ image }} 
+                  wait=true 
+                  region={{ region }} 
+                  keypair={{ keypair }}
+                  count={{count}}
+    register: ec2
+
+  - debug: msg="{{ ec2.instances }}"
+
+  - name: Add the newly created EC2 instance(s) to the local host group
+    local_action: lineinfile 
+                  dest="./hosts" 
+                  regexp={{ item.public_ip }} 
+                  insertafter="[webservers]" 
+                  line={{ item.public_ip }}
+    loop: "{{ ec2.instances }}"
+
+
+  - name: Wait for SSH to come up
+    local_action: wait_for 
+                  host={{ item.public_ip }} 
+                  port=22 
+                  state=started
+    loop: "{{ ec2.instances }}"
+
+  - name: Add tag to Instance(s)
+    local_action: ec2_tag resource={{ item.id }} region={{ region }} state=present
+    loop: "{{ ec2.instances }}"
+    args:
+      tags:
+        Name: webserver
+  environment:
+    AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
+    AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"
+    AWS_SESSION_TOKEN: "{{ assumed_role.sts_creds.session_token }}"
