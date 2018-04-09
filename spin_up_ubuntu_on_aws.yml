@@ -12,7 +12,6 @@
       keypair: ansible
       region: eu-west-1
       count: 1
-      key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
 
     vars_files:
       - vars.yml
@@ -21,7 +20,6 @@
     # Task that will be used to Launch/Create an EC2 Instance
     tasks:
 
-      - debug: msg="{{ key }} is an environment variable"
       - debug: msg="{{ aws_access_key }} is an key "
 
       - name: Dump all vars
@@ -39,22 +37,12 @@
         register: assumed_role
         when: sts
 
-      - debug: msg="{{ hostvars }} is an key "
-      - debug: msg="{{ hostvars['localhosts'] }} is an key "
-      - debug: msg="{{ hostvars['localhosts']['assumed_role'].sts_creds }} is an creds "
-      - name: Retreive STS Credentials
-        set_fact:
-          sts_aws_access_key: "{{ hostvars['localhosts']['assumed_role'].sts_creds.access_key }}"
-          sts_aws_secret_key: "{{ hostvars['localhosts']['assumed_role'].sts_creds.secret_key }}"
-          sts_security_token: "{{ hostvars['localhosts']['assumed_role'].sts_creds.session_token }}"
-        when: sts
-
       - name: Create a security group
         local_action: 
           module: ec2_group
-          aws_access_key: "{{ sts_aws_access_key | default(omit) }}"
-          aws_secret_key: "{{ sts_aws_secret_key | default(omit) }}"
-          security_token: "{{ sts_security_token | default(omit) }}"
+          aws_access_key: "{{ assumed_role.sts_creds.access_key | default(omit) }}"
+          aws_secret_key: "{{ assumed_role.sts_creds.secret_key | default(omit) }}"
+          security_token: "{{ assumed_role.sts_creds.session_token | default(omit) }}"
           name: "{{ security_group }}"
           description: Security Group for webserver Servers
           region: "{{ region }}"
