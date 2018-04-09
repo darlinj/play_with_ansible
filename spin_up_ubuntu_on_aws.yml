@@ -17,6 +17,11 @@
       - vars.yml
       - sts_vars.yml
 
+    vars_prompt:
+      - name: sts_mfatoken
+        prompt: What is your 2fa code?
+        private: no
+
     # Task that will be used to Launch/Create an EC2 Instance
     tasks:
 

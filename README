@@ -46,5 +46,5 @@ localhosts
 >ansible all -i ./hosts -a "/bin/echo hello" -u ubuntu
 If this works you then ansible is installed correctly
 
->sudo -H ansible-playbook -i ./hosts -e sts_mfatoken=<your MFA code> spin_up_ubuntu_on_aws.yml -vvvvv
+>sudo -H ansible-playbook -i ./hosts spin_up_ubuntu_on_aws.yml -vvvvv
 
