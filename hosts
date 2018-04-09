@@ -3,3 +3,7 @@ localhosts
 
 [test_servers]
 34.248.154.206
+
+[webservers]
+34.241.67.133
+34.253.194.84
