@@ -1,0 +1,50 @@
+* INSTALLING AWS TOOLS
+This should allow you to use your MFA token to log into AWS.
+>sudo apt install awscli
+
+~/.aws/config:
+[default]
+region=eu-west-1
+output=json
+
+[profile poweruser]
+role_arn = arn:aws:iam::562925407179:role/bttv-mnb-poc-role-poweruser
+region = eu-west-1
+source_profile = default
+mfa_serial = arn:aws:iam::919384593253:mfa/joe.darling
+
+~/.aws/credentials:
+[default]
+aws_access_key_id = <your user key id>
+aws_secret_access_key = <your user secret key>
+
+>aws ec2 describe-instances --profile poweruser
+
+This maybe necessary if your machine time is wrong by more than a few seconds
+>sudo apt-get install ntpdate
+>sudo ntpdate ntp.ubuntu.com
+
+* INSTALLING ANSIBLE
+The default version of ansible on Ubuntu doesn't support MFA credentials
+
+>sudo apt-get install software-properties-common
+>sudo apt-add-repository ppa:ansible/ansible
+>sudo apt-get update
+>sudo apt-get install ansible
+>sudo apt-get install python-pip
+>pip install --upgrade pip
+>pip install boto
+>ansible --version // should be > 1.1
+>sudo vi ./hosts
+Add an IP address of a server that you can access
+[local]
+localhosts
+
+[test_servers]
+34.248.154.206
+
+>ansible all -i ./hosts -a "/bin/echo hello" -u ubuntu
+If this works you then ansible is installed correctly
+
+>sudo -H ansible-playbook -i ./hosts -e sts_mfatoken=<your MFA code> spin_up_ubuntu_on_aws.yml -vvvvv
+
