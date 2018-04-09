@@ -1,0 +1,14 @@
+---
+aws_access: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+aws_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+aws_access_key: "{{aws_access}}"
+aws_secret_key: "{{aws_secret}}"
+
+region: "eu-west-1"
+
+sts: true
+sts_role_arn: "arn:aws:iam::562925407179:role/bttv-mnb-poc-role-poweruser"
+sts_profile: "default" # Name of profile setup in ~/.aws/config
+sts_mfa: "arn:aws:iam::919384593253:mfa/joe.darling"
+sts_role_session_name: "ansible"
+
