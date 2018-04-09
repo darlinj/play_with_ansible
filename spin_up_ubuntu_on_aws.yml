@@ -25,10 +25,10 @@
     # Task that will be used to Launch/Create an EC2 Instance
     tasks:
 
-      - debug: msg="{{ aws_access_key }} is an key "
+      - debug: msg="{{ aws_access_key }} is an key"
 
       - name: Dump all vars
-        action: template src=dumpall.j2 dest=/tmp/ansible.all`
+        action: template src=dumpall.j2 dest=/tmp/ansible.all
 
       - name: AWS Get STS Credentials
         local_action:
@@ -42,30 +42,55 @@
         register: assumed_role
         when: sts
 
-      - name: Create a security group
-        local_action: 
-          module: ec2_group
-          aws_access_key: "{{ assumed_role.sts_creds.access_key | default(omit) }}"
-          aws_secret_key: "{{ assumed_role.sts_creds.secret_key | default(omit) }}"
-          security_token: "{{ assumed_role.sts_creds.session_token | default(omit) }}"
-          name: "{{ security_group }}"
-          description: Security Group for webserver Servers
-          region: "{{ region }}"
-          rules:
-            - proto: tcp
-              from_port: 22
-              to_port: 22
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 80
-              to_port: 80
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 443
-              to_port: 443
-              cidr_ip: 0.0.0.0/0
-          rules_egress:
-            - proto: all
-              cidr_ip: 0.0.0.0/0
-        register: basic_firewall
+      - block:
 
+        - name: Create a security group
+          local_action: 
+            module: ec2_group
+            name: "{{ security_group }}"
+            description: Security Group for webserver Servers
+            region: "{{ region }}"
+            rules:
+              - proto: tcp
+                from_port: 22
+                to_port: 22
+                cidr_ip: 0.0.0.0/0
+              - proto: tcp
+                from_port: 80
+                to_port: 80
+                cidr_ip: 0.0.0.0/0
+              - proto: tcp
+                from_port: 443
+                to_port: 443
+                cidr_ip: 0.0.0.0/0
+            rules_egress:
+              - proto: all
+                cidr_ip: 0.0.0.0/0
+          register: basic_firewall
+        - name: Create a second security group
+          local_action: 
+            module: ec2_group
+            name: "{{ security_group }}foo"
+            description: Security Group for other things
+            region: "{{ region }}"
+            rules:
+              - proto: tcp
+                from_port: 22
+                to_port: 22
+                cidr_ip: 0.0.0.0/0
+              - proto: tcp
+                from_port: 80
+                to_port: 80
+                cidr_ip: 0.0.0.0/0
+              - proto: tcp
+                from_port: 443
+                to_port: 443
+                cidr_ip: 0.0.0.0/0
+            rules_egress:
+              - proto: all
+                cidr_ip: 0.0.0.0/0
+          register: basic_firewall
+        environment:
+          AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
+          AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"
+          AWS_SESSION_TOKEN: "{{ assumed_role.sts_creds.session_token }}"
