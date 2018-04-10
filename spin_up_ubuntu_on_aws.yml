@@ -10,5 +10,6 @@
         prompt: What is your 2fa code?
         private: no
     roles:
+      - create_aws_vpc
       - create_aws_ubuntu
 
