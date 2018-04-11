@@ -50,18 +50,6 @@
         - dest: "0.0.0.0/0"
           gateway_id: "{{ igw_id }}"
   
-  - name: Create Main Security Group
-    ec2_group:
-      name: "Public access group"
-      description: "Access to and from the internet"
-      vpc_id: "{{ vpc_id }}"
-      region: "{{ region }}"
-      rules:
-        - proto:        "tcp"
-          from_port:    "22"
-          to_port:      "22"
-          cidr_ip:      "0.0.0.0/0"
-
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
     AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"

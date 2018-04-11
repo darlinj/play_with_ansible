@@ -10,6 +10,7 @@
       module: ec2_group
       name: "{{ security_group }}"
       description: Security Group for webserver Servers
+      vpc_id: "{{ vpc_id }}"
       region: "{{ region }}"
       rules:
         - proto: tcp
@@ -28,6 +29,8 @@
         - proto: all
           cidr_ip: 0.0.0.0/0
     register: basic_firewall
+  
+  - debug: msg="{{ public_subnet_id }}"
 
   - ec2:
       group: "{{ security_group }}"
@@ -36,7 +39,9 @@
       wait: true 
       region: "{{ region }}"
       keypair: "{{ keypair }}"
+      assign_public_ip: yes
       exact_count: 1
+      vpc_subnet_id: "{{ public_subnet_id }}"
       count_tag: 
         Name: "{{ item.name }}"
       instance_tags:
@@ -49,6 +54,8 @@
         instance-state-name: running
         "tag:group": customer_hosts
     register: instance_details
+
+  - debug: msg="{{ instance_details }}"
 
   - name: Add the newly created EC2 instance(s) to the local host group
     local_action: lineinfile 
