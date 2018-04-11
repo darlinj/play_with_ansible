@@ -17,14 +17,6 @@
           from_port: 22
           to_port: 22
           cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 443
-          to_port: 443
-          cidr_ip: 0.0.0.0/0
       rules_egress:
         - proto: all
           cidr_ip: 0.0.0.0/0
@@ -57,11 +49,16 @@
 
   - debug: msg="{{ instance_details }}"
 
-  - name: Add the newly created EC2 instance(s) to the local host group
+  - name: Delete all IP's from the customer_hosts section
+    local_action: replace
+      path="./hosts" 
+      regexp='\[customer_hosts\]\n[0-9\.\n]*'
+      replace='[customer_hosts]\n' 
+
+  - name: Add the EC2 instance(s) to the local host group
     local_action: lineinfile 
                   dest="./hosts" 
-                  regexp={{ item.public_ip_address }} 
-                  insertafter="[webservers]" 
+                  insertafter="[customer_hosts]" 
                   line={{ item.public_ip_address }}
     loop: "{{ instance_details.instances }}"
 
