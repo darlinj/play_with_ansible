@@ -60,7 +60,7 @@
         - proto:        "tcp"
           from_port:    "22"
           to_port:      "22"
-          cidr_ip:      "0.0.0.0"
+          cidr_ip:      "0.0.0.0/0"
 
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"

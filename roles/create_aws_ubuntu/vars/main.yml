@@ -5,3 +5,7 @@ image: ami-f90a4880
 keypair: ansible
 region: eu-west-1
 count: 1
+servers: 
+  - name: Ubuntu1
+  - name: Ubuntu2
+  
