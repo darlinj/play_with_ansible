@@ -1,0 +1,13 @@
+---
+instance_type: m4.xlarge
+security_group: ansible
+image: ami-5ea0f027
+keypair: ansible
+region: eu-west-1
+count: 1
+interfaces: 
+  management:
+    ip: 10.0.0.100
+    name: Mangement interface
+  
+  
