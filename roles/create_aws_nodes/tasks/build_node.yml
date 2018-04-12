@@ -31,8 +31,6 @@
         Name: "{{ node.name }}"
     register: instance_details
 
-  - debug:
-      msg: "{{ instance_details }}"
   - set_fact:
       public_ip_address: instance_details.public_ip_address
     when: instance_details.public_ip_address is defined
