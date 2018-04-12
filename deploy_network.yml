@@ -12,5 +12,5 @@
     roles:
       - create_aws_vpc
       - create_aws_ubuntu
-      - create_aws_vMX
+#     - create_aws_vMX
 
