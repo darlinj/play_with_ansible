@@ -2,27 +2,13 @@
 - set_fact: 
     node: "{{ item }}"
 
+- set_fact: 
+    interface_ids: []
+
 - block:
 
-  - ec2_vpc_subnet_facts:
-      filters:
-        "tag:Name": "{{ node.subnet }}"
-    register: subnets
-
-  - set_fact:
-      subnet_id: "{{ subnets.subnets[0].id }}"
-
-  - ec2_eni:
-      private_ip_address: "{{ node.private_ip_address }}"
-      description: "{{ node.name }} network port"
-      subnet_id: "{{ subnet_id }}"
-      security_groups: "{{ node.security_group }}"
-      region: "{{ region }}"
-      state: present
-    register: managment_interface
-
-  - debug:
-      msg: "{{ managment_interface }}"
+  - include: attach_network_interfaces.yml
+    with_items: "{{ node.network_interfaces }}"
 
   - ec2:
       instance_type: "{{ node.instance_type}}"
@@ -30,7 +16,7 @@
       wait: true 
       region: "{{ region }}"
       keypair: "{{ node.keypair }}"
-      network_interface: "{{ managment_interface.interface.id }}"
+      network_interfaces: "{{ interface_ids }}"
       exact_count: 1
       count_tag: 
         Name: "{{ node.name }}"
@@ -39,9 +25,24 @@
         Name: "{{ node.name }}"
     register: instance_details
 
+  - debug:
+      msg: "{{ instance_details }}"
+
+  - set_fact:
+      instance_id: "{{ instance_details.tagged_instances[0].id }}"
+
+  - debug:
+      msg: "{{ instance_id }}"
+
+  - ec2_remote_facts:
+      region: "{{ region }}"
+      filters:
+        instance-id: "{{ instance_id }}"
+    register: instance_details
+
   - set_fact:
       public_ip_address: instance_details.public_ip_address
-    when: instance_details.public_ip_address is defined
+    when: instance_details.instances[0].public_ip_address is defined
 
   - name: Add the EC2 instance to the local host group
     local_action: lineinfile 
@@ -52,12 +53,12 @@
     when: public_ip_address is defined
 
 
-  - name: Wait for SSH to come up
-    local_action: wait_for 
-                  host={{ public_ip_address }} 
-                  port=22 
-                  state=started
-    when: public_ip_address is defined
+#  - name: Wait for SSH to come up
+#    local_action: wait_for 
+#                  host={{ public_ip_address }} 
+#                  port=22 
+#                  state=started
+#    when: public_ip_address is defined
 
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"

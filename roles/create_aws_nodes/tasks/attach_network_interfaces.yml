@@ -1,0 +1,35 @@
+---
+- set_fact: 
+    network_interface: "{{ item }}"
+
+- block:
+  - ec2_vpc_subnet_facts:
+      filters:
+        "tag:Name": "{{ network_interface.subnet }}"
+    register: subnets
+
+  - set_fact:
+      subnet_id: "{{ subnets.subnets[0].id }}"
+
+  - ec2_eni:
+      private_ip_address: "{{ network_interface.private_ip_address }}"
+      description: "{{ node.name }} network port"
+      subnet_id: "{{ subnet_id }}"
+      security_groups: "{{ node.security_group }}"
+      region: "{{ region }}"
+      state: present
+    register: interface
+
+  - debug:
+      msg: "{{ interface }}"
+
+  - set_fact:
+      interface_ids: "{{ interface_ids }} + [ '{{ interface.interface.id }}' ] "
+
+  - debug:
+      msg: "{{ interface_ids }}"
+
+  environment:
+    AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
+    AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"
+    AWS_SESSION_TOKEN: "{{ assumed_role.sts_creds.session_token }}"

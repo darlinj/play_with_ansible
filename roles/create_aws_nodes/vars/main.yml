@@ -8,21 +8,26 @@ nodes:
     image: ami-f90a4880
     keypair: ansible
     tag_group: customer_hosts
-    private_ip_address: 10.0.1.100
-    subnet: management_network
+    network_interfaces:
+      - private_ip_address: 10.0.1.100
+        subnet: management_network
   - name: Ubuntu2
     instance_type: t2.micro
     security_group: ansible
     image: ami-f90a4880
     keypair: ansible
     tag_group: customer_hosts
-    private_ip_address: 10.0.1.101
-    subnet: management_network
+    network_interfaces:
+      - private_ip_address: 10.0.1.101
+        subnet: management_network
   - name: vMX1
     instance_type: m4.xlarge
     security_group: ansible
     image: ami-5ea0f027
     tag_group: routers
     keypair: ansible
-    private_ip_address: 10.0.1.102
-    subnet: management_network
+    network_interfaces:
+      - private_ip_address: 10.0.1.102
+        subnet: management_network
+      - private_ip_address: 10.0.1.103
+        subnet: management_network

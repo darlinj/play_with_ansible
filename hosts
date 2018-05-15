@@ -7,3 +7,4 @@ localhosts
 [customer_hosts]
 
 [routers]
+instance_details.public_ip_address
