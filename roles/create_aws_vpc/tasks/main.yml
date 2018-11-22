@@ -1,5 +1,8 @@
 ---
 - block:
+  - set_fact: 
+      subnet_ids: []
+
   - name: Create VPC
     ec2_vpc_net:
       name:             "{{ vpc_name }}"
@@ -12,8 +15,33 @@
     set_fact:
       vpc_id:           "{{ vpc.vpc.id }}"
   
+  - name: Create Internet Gateway
+    ec2_vpc_igw:
+      vpc_id:           "{{ vpc_id }}"
+      region:           "{{ region }}"
+      state:            "present"
+    register: vpc_igw
+  
+  - name: Set Internet Gateway ID in variable
+    set_fact:
+      igw_id:           "{{ vpc_igw.gateway_id }}"
+  
   - include: create_subnet.yml
     with_items: "{{ subnets }}"
+
+  - debug:
+      msg: "{{ subnet_ids }}"
+
+  - name: Set up subnet route table
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ region }}"
+      tags:
+        Name: "Auto created route table"
+      subnets: "{{ subnet_ids }}"
+      routes:
+        - dest: "0.0.0.0/0"
+          gateway_id: "{{ igw_id }}"
 
   - name: Create a security group
     local_action: 
@@ -26,6 +54,10 @@
         - proto: tcp
           from_port: 22
           to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: icmp
+          from_port: 0
+          to_port: 65535
           cidr_ip: 0.0.0.0/0
       rules_egress:
         - proto: all

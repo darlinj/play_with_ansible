@@ -26,9 +26,6 @@
   - set_fact:
       interface_ids: "{{ interface_ids }} + [ '{{ interface.interface.id }}' ] "
 
-  - debug:
-      msg: "{{ interface_ids }}"
-
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
     AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"

@@ -29,5 +29,5 @@ nodes:
     network_interfaces:
       - private_ip_address: 10.0.1.102
         subnet: management_network
-      - private_ip_address: 10.0.1.103
-        subnet: management_network
+      - private_ip_address: 10.0.2.103
+        subnet: east_network
