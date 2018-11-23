@@ -3,6 +3,9 @@
     node: "{{ item }}"
 
 - set_fact: 
+    elastic_ips: []
+
+- set_fact: 
     interface_ids: []
 
 - block:
@@ -24,6 +27,9 @@
         group: customer_hosts
         Name: "{{ node.name }}"
     register: instance_details
+
+  - debug:
+      msg: "{{ elastic_ips }}"
 
   - debug:
       msg: "{{ instance_details }}"

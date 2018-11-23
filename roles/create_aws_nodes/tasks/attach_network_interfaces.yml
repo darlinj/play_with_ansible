@@ -23,8 +23,27 @@
   - debug:
       msg: "{{ interface }}"
 
+  - ec2_eip:
+      in_vpc: yes
+      state: present
+      region: "{{ region }}"
+      device_id: "{{ interface.interface.id }}"
+    when: network_interface.subnet == "management_network"
+    register: elastic_ip
+
+  - ec2_tag:
+      region: "{{ region }}"
+      resource: "{{ elastic_ip.allocation_id }}"
+      state: present
+      tags:
+        Name: "{{ node.name }} management network elastic IP"
+    when: network_interface.subnet == "management_network"
+
   - set_fact:
       interface_ids: "{{ interface_ids }} + [ '{{ interface.interface.id }}' ] "
+
+  - set_fact:
+      elastic_ips: "{{ elastic_ips }} + [ '{{ elastic_ip }}' ] "
 
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
