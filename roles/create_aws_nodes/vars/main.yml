@@ -11,6 +11,8 @@ nodes:
     network_interfaces:
       - private_ip_address: 10.0.1.100
         subnet: management_network
+      - private_ip_address: 10.0.3.100
+        subnet: west_network
   - name: Ubuntu2
     instance_type: t2.micro
     security_group: ansible
@@ -20,6 +22,8 @@ nodes:
     network_interfaces:
       - private_ip_address: 10.0.1.101
         subnet: management_network
+      - private_ip_address: 10.0.2.100
+        subnet: east_network
   - name: vMX1
     instance_type: m4.xlarge
     security_group: ansible
@@ -29,5 +33,7 @@ nodes:
     network_interfaces:
       - private_ip_address: 10.0.1.102
         subnet: management_network
-      - private_ip_address: 10.0.2.103
+      - private_ip_address: 10.0.2.101
         subnet: east_network
+      - private_ip_address: 10.0.3.101
+        subnet: west_network
