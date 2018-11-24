@@ -20,6 +20,7 @@
       region: "{{ region }}"
       keypair: "{{ node.keypair }}"
       network_interfaces: "{{ interface_ids }}"
+      user_data: "{{ lookup('file', 'base_config.txt') }}"     
       exact_count: 1
       count_tag: 
         Name: "{{ node.name }}"
@@ -27,18 +28,23 @@
         group: "{{ node.tag_group }}"
         Name: "{{ node.name }}"
     register: instance_details
+    when: node.tag_group == "routers"
 
-  - debug:
-      msg: "{{ instance_details }}"
-
-  - set_fact:
-      instance_id: "{{ instance_details.tagged_instances[0].id }}"
-
-  - debug:
-      msg: "{{ instance_id }}"
-
-  - debug:
-      msg: "{{ elastic_ips }}"
+  - ec2:
+      instance_type: "{{ node.instance_type}}"
+      image: "{{ node.image }}"
+      wait: true 
+      region: "{{ region }}"
+      keypair: "{{ node.keypair }}"
+      network_interfaces: "{{ interface_ids }}"
+      exact_count: 1
+      count_tag: 
+        Name: "{{ node.name }}"
+      instance_tags:
+        group: "{{ node.tag_group }}"
+        Name: "{{ node.name }}"
+    register: instance_details
+    when: node.tag_group == "customer_hosts"
 
   - wait_for:
       host: "{{ elastic_ip }}"
