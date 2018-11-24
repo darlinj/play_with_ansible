@@ -31,6 +31,10 @@
     when: network_interface.subnet == "management_network"
     register: elastic_ip
 
+  - set_fact:
+      elastic_ips: "{{ elastic_ips }} + [ '{{ elastic_ip.public_ip }}' ] "
+    when: network_interface.subnet == "management_network"
+
   - ec2_tag:
       region: "{{ region }}"
       resource: "{{ elastic_ip.allocation_id }}"
@@ -39,11 +43,21 @@
         Name: "{{ node.name }} management network elastic IP"
     when: network_interface.subnet == "management_network"
 
-  - set_fact:
-      interface_ids: "{{ interface_ids }} + [ '{{ interface.interface.id }}' ] "
+  - debug:
+      msg: "{{ node }}"
+
+  - debug:
+      msg: "[{{ node.tag_group }}]" 
+
+  - lineinfile:
+      dest: "./hosts" 
+      regexp: "{{ elastic_ip.public_ip }}"
+      insertafter: ".{{ node.tag_group }}." 
+      line: "{{ elastic_ip.public_ip }}"
+    when: network_interface.subnet == "management_network"
 
   - set_fact:
-      elastic_ips: "{{ elastic_ips }} + [ '{{ elastic_ip }}' ] "
+      interface_ids: "{{ interface_ids }} + [ '{{ interface.interface.id }}' ] "
 
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"

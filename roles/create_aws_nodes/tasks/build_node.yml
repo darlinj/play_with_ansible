@@ -24,12 +24,9 @@
       count_tag: 
         Name: "{{ node.name }}"
       instance_tags:
-        group: customer_hosts
+        group: "{{ node.tag_group }}"
         Name: "{{ node.name }}"
     register: instance_details
-
-  - debug:
-      msg: "{{ elastic_ips }}"
 
   - debug:
       msg: "{{ instance_details }}"
@@ -40,31 +37,16 @@
   - debug:
       msg: "{{ instance_id }}"
 
-  - ec2_remote_facts:
-      region: "{{ region }}"
-      filters:
-        instance-id: "{{ instance_id }}"
-    register: instance_details
+  - debug:
+      msg: "{{ elastic_ips }}"
 
-  - set_fact:
-      public_ip_address: instance_details.public_ip_address
-    when: instance_details.instances[0].public_ip_address is defined
-
-  - name: Add the EC2 instance to the local host group
-    local_action: lineinfile 
-                  dest="./hosts" 
-                  regexp="{{ public_ip_address }}"
-                  insertafter="[{{ node.tag_group }}]" 
-                  line="{{ public_ip_address }}"
-    when: public_ip_address is defined
-
-
-#  - name: Wait for SSH to come up
-#    local_action: wait_for 
-#                  host={{ public_ip_address }} 
-#                  port=22 
-#                  state=started
-#    when: public_ip_address is defined
+  - wait_for:
+      host: "{{ elastic_ip }}"
+      port: 22 
+      state: started
+    with_items: "{{ elastic_ips }}"
+    loop_control:
+      loop_var: elastic_ip
 
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"

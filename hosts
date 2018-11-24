@@ -1,10 +1,9 @@
 [local]
 localhosts
 
-[test_servers]
-34.248.154.206
-
 [customer_hosts]
+63.33.136.109
+52.48.57.225
 
 [routers]
-instance_details.public_ip_address
+63.33.97.52
