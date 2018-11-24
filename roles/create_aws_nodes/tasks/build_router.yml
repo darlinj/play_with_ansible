@@ -2,12 +2,6 @@
 - set_fact: 
     node: "{{ item }}"
 
-- set_fact: 
-    elastic_ips: []
-
-- set_fact: 
-    interface_ids: []
-
 - block:
 
   - include: attach_network_interfaces.yml
@@ -28,31 +22,6 @@
         group: "{{ node.tag_group }}"
         Name: "{{ node.name }}"
     register: instance_details
-    when: node.tag_group == "routers"
-
-  - ec2:
-      instance_type: "{{ node.instance_type}}"
-      image: "{{ node.image }}"
-      wait: true 
-      region: "{{ region }}"
-      keypair: "{{ node.keypair }}"
-      network_interfaces: "{{ interface_ids }}"
-      exact_count: 1
-      count_tag: 
-        Name: "{{ node.name }}"
-      instance_tags:
-        group: "{{ node.tag_group }}"
-        Name: "{{ node.name }}"
-    register: instance_details
-    when: node.tag_group == "customer_hosts"
-
-  - wait_for:
-      host: "{{ elastic_ip }}"
-      port: 22 
-      state: started
-    with_items: "{{ elastic_ips }}"
-    loop_control:
-      loop_var: elastic_ip
 
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"

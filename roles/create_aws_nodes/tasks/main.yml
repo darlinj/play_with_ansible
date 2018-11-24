@@ -1,2 +1,20 @@
-- include: build_node.yml
-  with_items: "{{ nodes }}"
+- set_fact: 
+    elastic_ips: []
+
+- set_fact: 
+    interface_ids: []
+
+- include: build_server.yml
+  with_items: "{{ nodes.servers }}"
+
+- include: build_router.yml
+  with_items: "{{ nodes.routers }}"
+
+- wait_for:
+    host: "{{ elastic_ip }}"
+    port: 22 
+    state: started
+  with_items: "{{ elastic_ips }}"
+  loop_control:
+    loop_var: elastic_ip
+

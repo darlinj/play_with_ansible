@@ -2,7 +2,7 @@
 groups {
 	global {
 		system {
-			host-name coolio;
+			host-name HOSTNAME;
 			services {
 				ssh {
 					root-login deny-password;

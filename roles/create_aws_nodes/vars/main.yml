@@ -2,38 +2,40 @@
 region: eu-west-1
 
 nodes:
-  - name: Ubuntu1
-    instance_type: t2.micro
-    security_group: ansible
-    image: ami-f90a4880
-    keypair: ansible
-    tag_group: customer_hosts
-    network_interfaces:
-      - private_ip_address: 10.0.1.100
-        subnet: management_network
-      - private_ip_address: 10.0.3.100
-        subnet: west_network
-  - name: Ubuntu2
-    instance_type: t2.micro
-    security_group: ansible
-    image: ami-f90a4880
-    keypair: ansible
-    tag_group: customer_hosts
-    network_interfaces:
-      - private_ip_address: 10.0.1.101
-        subnet: management_network
-      - private_ip_address: 10.0.2.100
-        subnet: east_network
-  - name: vMX1
-    instance_type: m4.xlarge
-    security_group: ansible
-    image: ami-5ea0f027
-    tag_group: routers
-    keypair: ansible
-    network_interfaces:
-      - private_ip_address: 10.0.1.102
-        subnet: management_network
-      - private_ip_address: 10.0.2.101
-        subnet: east_network
-      - private_ip_address: 10.0.3.101
-        subnet: west_network
+  servers:
+    - name: Ubuntu1
+      instance_type: t2.micro
+      security_group: ansible
+      image: ami-f90a4880
+      keypair: ansible
+      tag_group: customer_hosts
+      network_interfaces:
+        - private_ip_address: 10.0.1.100
+          subnet: management_network
+        - private_ip_address: 10.0.3.100
+          subnet: west_network
+    - name: Ubuntu2
+      instance_type: t2.micro
+      security_group: ansible
+      image: ami-f90a4880
+      keypair: ansible
+      tag_group: customer_hosts
+      network_interfaces:
+        - private_ip_address: 10.0.1.101
+          subnet: management_network
+        - private_ip_address: 10.0.2.100
+          subnet: east_network
+  routers:
+    - name: vMX1
+      instance_type: m4.xlarge
+      security_group: ansible
+      image: ami-5ea0f027
+      tag_group: routers
+      keypair: ansible
+      network_interfaces:
+        - private_ip_address: 10.0.1.102
+          subnet: management_network
+        - private_ip_address: 10.0.2.101
+          subnet: east_network
+        - private_ip_address: 10.0.3.101
+          subnet: west_network
