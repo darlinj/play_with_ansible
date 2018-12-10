@@ -1,9 +1,6 @@
 - set_fact: 
     elastic_ips: []
 
-- set_fact: 
-    interface_ids: []
-
 - include: build_server.yml
   with_items: "{{ nodes.servers }}"
 

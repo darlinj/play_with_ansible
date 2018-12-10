@@ -2,6 +2,12 @@
 - set_fact: 
     node: "{{ item }}"
 
+- set_fact: 
+    interface_ids: []
+
+- set_fact: 
+    interface_description: "Wibbly wobbly interface"
+
 - block:
 
   - include: attach_network_interfaces.yml
@@ -14,7 +20,7 @@
       region: "{{ region }}"
       keypair: "{{ node.keypair }}"
       network_interfaces: "{{ interface_ids }}"
-      user_data: "{{ lookup('file', 'base_config.txt') }}"     
+      user_data: "{{ lookup('template', 'basic_config.j2') }}"     
       exact_count: 1
       count_tag: 
         Name: "{{ node.name }}"

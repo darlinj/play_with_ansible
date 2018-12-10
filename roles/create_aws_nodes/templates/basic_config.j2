@@ -1,0 +1,218 @@
+#junos-config
+groups {
+	global {
+		system {
+                        host-name "{{ node.hostname }}";
+			services {
+				ssh {
+					root-login deny-password;
+				}
+			}
+			login {
+				user jnpr {
+					uid 2000;
+					class super-user;
+					authentication {
+						ssh-rsa "SSHRSAKEY"; ## SECRET-DATA
+					}
+				}
+			}
+			syslog {
+				user * {
+					any emergency;
+				}
+				file messages {
+					any notice;
+					authorization info;
+				}
+				file interactive-commands {
+					interactive-commands any;
+				}
+			}
+		}
+		interfaces {
+			fxp0 {
+                		description "interface is {{ interface_description }}";
+				unit 0 {
+					family  inet {
+						address FXP0ADDR;
+					}
+				}
+			}
+		}
+		routing-options {
+			static {
+				route 0.0.0.0/0 {
+					next-hop GATEWAY;
+					retain;
+					no-readvertise;
+				}
+			}
+		}
+	}
+	24 Copyright © 2018, Juniper Networks, Inc.
+		Getting Started Guide for AWS
+}
+apply-groups global;
+system {
+    services {
+        netconf {
+            ssh {                       
+                connection-limit 20;
+                rate-limit 5;
+                port 830;
+            }
+            rfc-compliant;
+            yang-compliant;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            match "(requested 'commit' operation)|(requested 'commit synchronize' operation)|(copying configuration to juniper.save)|(commit complete)|ifAdminStatus|(FRU power)|(FRU removal)|(FRU insertion)|(link UP)|transitioned|Transferred|transfer-file|(license add)|(license delete)|(package -X update)|(package -X delete)|(FRU Online)|(FRU Offline)|(plugged in)|(unplugged)|CFMD_CCM_DEFECT| LFMD_3AH | RPD_MPLS_PATH_BFD|(Master Unchanged, Members Changed)|(Master Changed, Members Changed)|(Master Detected, Members Changed)|(vc add)|(vc delete)|(Master detected)|(Master changed)|(Backup detected)|(Backup changed)|(interface vcp-)";
+            structured-data;
+        }
+    }
+    processes {
+        inactive: dhcp-service {
+            traceoptions {
+                file dhcp_logfile size 10m;
+                level all;
+                flag all;
+            }
+        }
+    }
+}
+interfaces {
+    {% for interface in node.network_interfaces %}
+      {% if interface.subnet != "management_network" %}
+    {{ interface.interface_name }} {
+        unit 0 {                        
+            family inet {
+                address {{ interface.private_ip_address }}/{{ interface.mask }};
+            }
+        }
+    }
+      {% endif %}
+    {% endfor %}
+}
+snmp {
+    community public;
+    trap-group space {
+        targets {
+            "{{ smtp_target }}";
+        }
+    }
+}
+routing-options {
+    autonomous-system 65000;            
+}
+protocols {
+    rsvp {
+        interface all;
+        interface fxp0.0 {
+            disable;
+        }
+    }
+    mpls {
+        lsp-external-controller pccd;
+        traffic-engineering {
+            database {
+                import {
+                    policy ospf-te;
+                }
+            }
+        }
+        no-propagate-ttl;
+        explicit-null;
+        interface fxp0.0 {
+            disable;
+        }
+        interface all;                  
+    }
+    bgp {
+        path-selection external-router-id;
+        advertise-from-main-vpn-tables;
+        log-updown;
+        drop-path-attributes 128;
+        vpn-apply-export;
+        tcp-mss 4096;
+        group ODL {
+            type internal;
+            description OpenDayLight;
+            local-address FXP0ADDR;
+            family inet {
+                unicast;
+            }
+            family traffic-engineering {
+                unicast;
+            }
+            export ospf-te;
+            peer-as 2856;
+            local-as 2856;
+            neighbor "{{ pcep_target }}";
+        }                               
+    }
+    ospf {
+        prefix-export-limit 1000;
+        overload timeout 300;
+        traffic-engineering;
+        export direct-to-ospf;
+        source-packet-routing {
+            node-segment {
+                ipv4-index 100;
+                index-range 4000;
+            }
+        }
+        area 0.0.0.0 {
+            interface fxp0.0;
+            interface lo0.0 {
+                passive;
+            }
+        }
+    }
+    pcep {
+        pce ODL {
+            local-address FXP0ADDR;
+            destination-ipv4-address "{{ pcep_target }}";
+            destination-port 4189;
+            pce-type active stateful;
+            lsp-provisioning;
+            p2mp-lsp-report-capability;
+        }
+    }
+}
+policy-options {
+    policy-statement TEST_bgp2ospf_pol {
+        term a {
+            from protocol bgp;
+            then accept;
+        }
+        term b {
+            then reject;
+        }
+    }
+    policy-statement direct-to-ospf {
+        term 1 {
+            from protocol direct;
+        }
+        then accept;
+    }                                   
+    policy-statement ospf-te {
+        term 1 {
+            from protocol ospf;
+            to family traffic-engineering;
+            then accept;
+        }
+    }
+}

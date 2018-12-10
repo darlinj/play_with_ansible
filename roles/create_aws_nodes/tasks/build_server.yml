@@ -2,6 +2,9 @@
 - set_fact: 
     node: "{{ item }}"
 
+- set_fact: 
+    interface_ids: []
+
 - block:
 
   - include: attach_network_interfaces.yml

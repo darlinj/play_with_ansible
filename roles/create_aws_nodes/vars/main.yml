@@ -1,5 +1,7 @@
 ---
 region: eu-west-1
+pcep_target: 10.0.1.51
+smtp_target: 10.0.1.50
 
 nodes:
   servers:
@@ -27,6 +29,7 @@ nodes:
           subnet: east_network
   routers:
     - name: vMX1
+      hostname: Manchester.MX10003.uk
       instance_type: m4.xlarge
       security_group: ansible
       image: ami-5ea0f027
@@ -37,5 +40,9 @@ nodes:
           subnet: management_network
         - private_ip_address: 10.0.2.101
           subnet: east_network
+          interface_name: ge-0/0/0
+          mask: 24
         - private_ip_address: 10.0.3.101
           subnet: west_network
+          interface_name: ge-0/0/1
+          mask: 24
