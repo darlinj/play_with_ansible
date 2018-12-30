@@ -23,9 +23,9 @@ nodes:
       keypair: ansible
       tag_group: customer_hosts
       network_interfaces:
-        - private_ip_address: 10.0.1.101
+        - private_ip_address: 10.0.1.103
           subnet: management_network
-        - private_ip_address: 10.0.2.100
+        - private_ip_address: 10.0.2.101
           subnet: east_network
   routers:
     - name: vMX1
@@ -36,13 +36,31 @@ nodes:
       tag_group: routers
       keypair: ansible
       network_interfaces:
-        - private_ip_address: 10.0.1.102
+        - private_ip_address: 10.0.1.101
           subnet: management_network
-        - private_ip_address: 10.0.2.101
-          subnet: east_network
-          interface_name: ge-0/0/0
-          mask: 24
         - private_ip_address: 10.0.3.101
           subnet: west_network
+          interface_name: ge-0/0/0
+          mask: 24
+        - private_ip_address: 10.0.4.100
+          subnet: core_network
+          interface_name: ge-0/0/1
+          mask: 24
+    - name: vMX2
+      hostname: London.MX10003.uk
+      instance_type: m4.xlarge
+      security_group: ansible
+      image: ami-5ea0f027
+      tag_group: routers
+      keypair: ansible
+      network_interfaces:
+        - private_ip_address: 10.0.1.102
+          subnet: management_network
+        - private_ip_address: 10.0.4.101
+          subnet: core_network
+          interface_name: ge-0/0/0
+          mask: 24
+        - private_ip_address: 10.0.2.100
+          subnet: east_network
           interface_name: ge-0/0/1
           mask: 24
