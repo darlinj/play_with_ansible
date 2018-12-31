@@ -7,11 +7,4 @@
 - include: build_router.yml
   with_items: "{{ nodes.routers }}"
 
-- wait_for:
-    host: "{{ elastic_ip }}"
-    port: 22 
-    state: started
-  with_items: "{{ elastic_ips }}"
-  loop_control:
-    loop_var: elastic_ip
 

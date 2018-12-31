@@ -25,6 +25,14 @@
         Name: "{{ node.name }}"
     register: instance_details
 
+  - debug:
+      msg: "Elastic IP is: {{ elastic_ips[-1] }}"
+
+  - wait_for:
+      host: "{{ elastic_ips[-1] }}"
+      port: 22 
+      state: started
+
   environment:
     AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
     AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"

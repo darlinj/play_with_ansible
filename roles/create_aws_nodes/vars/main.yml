@@ -35,6 +35,7 @@ nodes:
       image: ami-5ea0f027
       tag_group: routers
       keypair: ansible
+      loopback_ip: 1.1.1.1
       network_interfaces:
         - private_ip_address: 10.0.1.101
           subnet: management_network
@@ -46,6 +47,12 @@ nodes:
           subnet: core_network
           interface_name: ge-0/0/1
           mask: 24
+      tunnels:
+        - interface_name: ge-0/0/0
+          source: 10.0.4.100
+          destination: 10.0.4.101
+          private_ip_address: 10.0.5.100
+          mask: 32
     - name: vMX2
       hostname: London.MX10003.uk
       instance_type: m4.xlarge
@@ -53,6 +60,7 @@ nodes:
       image: ami-5ea0f027
       tag_group: routers
       keypair: ansible
+      loopback_ip: 2.2.2.2
       network_interfaces:
         - private_ip_address: 10.0.1.102
           subnet: management_network
@@ -64,3 +72,9 @@ nodes:
           subnet: east_network
           interface_name: ge-0/0/1
           mask: 24
+      tunnels:
+        - interface_name: ge-0/0/0
+          source: 10.0.4.101
+          destination: 10.0.4.100
+          private_ip_address: 10.0.5.101
+          mask: 32

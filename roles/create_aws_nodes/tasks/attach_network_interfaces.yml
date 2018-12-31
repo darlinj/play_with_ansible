@@ -49,11 +49,9 @@
   - debug:
       msg: "[{{ node.tag_group }}]" 
 
-  - lineinfile:
-      dest: "./hosts" 
-      regexp: "{{ elastic_ip.public_ip }}"
-      insertafter: ".{{ node.tag_group }}." 
-      line: "{{ elastic_ip.public_ip }}"
+  - add_host:
+      name: "{{ elastic_ip.public_ip }}"
+      groups: "{{ node.tag_group }}" 
     when: network_interface.subnet == "management_network"
 
   - set_fact:

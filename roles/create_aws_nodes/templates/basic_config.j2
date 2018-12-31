@@ -2,7 +2,7 @@
 groups {
 	global {
 		system {
-                        host-name "{{ node.hostname }}";
+     host-name "{{ node.hostname }}";
 			services {
 				ssh {
 					root-login deny-password;
@@ -93,6 +93,15 @@ system {
         }
     }
 }
+chassis {
+    fpc 0 {
+        pic 0 {
+            tunnel-services {
+                bandwidth 10g;
+            }
+        }
+    }
+}
 interfaces {
     {% for interface in node.network_interfaces %}
       {% if interface.subnet != "management_network" %}
@@ -105,6 +114,27 @@ interfaces {
     }
       {% endif %}
     {% endfor %}
+    {% for tunnel in node.tunnels %}
+    {{ tunnel.interface_name }} {
+        unit 0 {
+            tunnel {
+                source {{ tunnel.source }};
+                destination {{ tunnel.destination }};
+            }
+            family inet {
+                address {{ tunnel.private_ip_address }}/{{ tunnel.mask }};
+            }
+        }
+    }
+    {% endfor %}
+    lo0 {
+        unit 0 {
+            description loopback;
+            family inet {
+                address {{ node.loopback_ip }}/32;
+            }
+        }
+    }
 }
 snmp {
     community public;
@@ -115,7 +145,11 @@ snmp {
     }
 }
 routing-options {
-    autonomous-system 65000;            
+    static {
+        route 10.0.5.0/24 next-hop gr-0/0/0.0;
+    }
+    router-id {{ node.loopback_ip }};
+    autonomous-system 65000;
 }
 protocols {
     rsvp {
