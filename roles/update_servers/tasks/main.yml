@@ -7,5 +7,14 @@
     name: apache2
     state: started
     enabled: yes
-
+- name: turning on eth1
+  copy:
+    src: ../files/eth1.cfg
+    dest: /etc/network/interfaces.d/eth1.cfg
+    owner: root
+    group: root
+    mode: 0644
+- service:
+    name: networking
+    state: restarted
 
