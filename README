@@ -2,16 +2,20 @@
 This should allow you to use your MFA token to log into AWS.
 >sudo apt install awscli
 
+* Pre-reqs
+brew install jq
+pip3 install boto3
+
 ~/.aws/config:
 [default]
 region=eu-west-1
 output=json
 
 [profile poweruser]
-role_arn = arn:aws:iam::562925407179:role/bttv-mnb-poc-role-poweruser
+role_arn = arn:aws:iam::56XXXXXXXXXX:role/bttv-mnb-poc-role-poweruser
 region = eu-west-1
 source_profile = default
-mfa_serial = arn:aws:iam::919384593253:mfa/joe.darling
+mfa_serial = arn:aws:iam::91XXXXXXXXXX:mfa/your.login
 
 ~/.aws/credentials:
 [default]
@@ -49,6 +53,10 @@ localhosts
 
 >ansible all -i ./hosts -a "/bin/echo hello" -u ubuntu
 If this works you then ansible is installed correctly
+
+* Assuming a role
+. ./assume_role arn:aws:iam::56XXXXXXXXXX:role/bttv-mnb-poc-role-poweruser 123456 
+where 123456 is the current MFA token
 
 >sudo -H ansible-playbook -i ./hosts spin_up_ubuntu_on_aws.yml -vvvvv
 

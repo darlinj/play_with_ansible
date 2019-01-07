@@ -16,6 +16,9 @@ nodes:
           subnet: management_network
         - private_ip_address: 10.0.3.100
           subnet: west_network
+      routes:
+        - destination: 10.0.3.0/24
+          interface: eth1
     - name: Ubuntu2
       instance_type: t2.micro
       security_group: ansible
@@ -27,6 +30,9 @@ nodes:
           subnet: management_network
         - private_ip_address: 10.0.2.101
           subnet: east_network
+      routes:
+        - destination: 10.0.2.0/24
+          interface: eth1
   routers:
     - name: vMX1
       hostname: Manchester.MX10003.uk

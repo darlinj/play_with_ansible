@@ -8,18 +8,9 @@
       - name: sts_mfatoken
         prompt: What is your 2fa code?
         private: no
+    vars_files:
+      - vars/global.yml
     roles:
       - create_aws_vpc
       - create_aws_nodes
-  - hosts: customer_hosts
-    remote_user: ubuntu
-    become: yes
-    gather_facts: no
-    pre_tasks:
-     - name: 'update apt cache'
-       raw: 'sudo apt-get -y update'
-     - name: 'install python3'
-       raw: 'sudo apt-get -y install python'
-    roles:
-      - update_servers
 

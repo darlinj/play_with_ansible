@@ -7,4 +7,3 @@
 - include: build_router.yml
   with_items: "{{ nodes.routers }}"
 
-

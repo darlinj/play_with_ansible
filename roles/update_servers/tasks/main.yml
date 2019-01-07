@@ -17,4 +17,13 @@
 - service:
     name: networking
     state: restarted
+- name: lookup node variables from array
+  set_fact: 
+    node: "{{ nodes.servers|selectattr('name', 'equalto', ec2_tag_Name) | list }}"
+- name: display routes
+  debug:
+    msg: "{{ node[0].routes }}"
+
+- include: add_routes.yml
+  with_items: "{{ node[0].routes }}"
 

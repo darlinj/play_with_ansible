@@ -1,0 +1,8 @@
+- name: check if routes have been set
+  shell: ip route list | grep -q "{{ item.destination }}"
+  register: route_check
+  ignore_errors: true
+
+- name: setting the routes for the customer networks
+  shell: ip route add "{{ item.destination }}" dev "{{ item.interface }}"
+  when: route_check is failed
