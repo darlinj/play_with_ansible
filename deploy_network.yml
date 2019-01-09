@@ -4,10 +4,6 @@
     connection: local
     gather_facts: False
     tags: provisioning
-    vars_prompt:
-      - name: sts_mfatoken
-        prompt: What is your 2fa code?
-        private: no
     vars_files:
       - vars/global.yml
     roles:

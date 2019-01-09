@@ -1,5 +1,3 @@
----
-- block:
   - set_fact: 
       subnet_ids: []
 
@@ -63,8 +61,3 @@
         - proto: all
           cidr_ip: 0.0.0.0/0
     register: basic_firewall
-  
-  environment:
-    AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
-    AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"
-    AWS_SESSION_TOKEN: "{{ assumed_role.sts_creds.session_token }}"
