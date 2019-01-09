@@ -5,10 +5,6 @@
 #   - awscli
 #   - jq
 #
-# It assumes that you have exported the "AWS_MFA_ARN" in your environment:
-#
-#     export AWS_MFA_ARN="arn:aws:iam::XXXXXXXXXXX:mfa/ar...@tendo.org"
-#
 # Then you can execute it like this:
 #
 # . ./assume-role prod 123456
@@ -16,15 +12,6 @@
 # Where "123456" is the current MFA token.
 # After that we can perform all the operations in the same way like we are currently performing with IAM user credentials. e.g:
 #
-# You can list the available roles by running "list_roles". Additionally, the
-# available roles can be tab-completed in the "assume_role" command.
-#
-# You can alter the AWS profile this script uses by setting the ASSUME_ROLE_PROFILE environment variable.
-#
-# ./ec2.py --list
-
-
-AWS_ACCOUNTS=(prod sandbox tools)
 
 
 assume_role () {
@@ -38,21 +25,25 @@ assume_role () {
     fi
 
 
-    case "$AWS_ACCOUNT" in
-       "prod") ROLE_ARN="arn:aws:iam::708756755355:role/tendo-$AWS_ACCOUNT-admin"
-       ;;
-       "sandbox") ROLE_ARN="arn:aws:iam::372153017832:role/tendo-$AWS_ACCOUNT-admin"
-       ;;
-       "tools") ROLE_ARN="arn:aws:iam::257477529851:role/tendo-$AWS_ACCOUNT-admin"
-       ;;
-       *) echo "Unknown account name, assuming this is a ROLE_ARN" >&2
-          ROLE_ARN=$AWS_ACCOUNT
-       ;;
-    esac
+    ROLE_ARN=$(awk "/^\[profile ${AWS_ACCOUNT}\]/{x=1}x&&/^role_arn/{print;exit}" ~/.aws/config | cut -f 2 -d '=' | tr -d ' ')
+
+    if [[ -z "${ROLE_ARN}" ]]; then
+        echo "Unable to find role_arn in ~/.aws/config for role $AWS_ACCOUNT. Have you set this up?"
+        return 1;
+    fi
+
+    AWS_MFA_ARN=$(awk "/^\[profile ${AWS_ACCOUNT}\]/{x=1}x&&/^mfa_serial/{print;exit}" ~/.aws/config | cut -f 2 -d '=' | tr -d ' ')
+
+    if [[ -z "$AWS_MFA_ARN}" ]]; then
+        echo "Unable to find mfa_serial in ~/.aws/config for role $AWS_ACCOUNT. Have you set this up?"
+        return 1;
+    fi
+
+    echo "Using role ARN: ***${ROLE_ARN}***"
+    echo "Using MFA ARN: ***${AWS_MFA_ARN}***"
 
 
     unset AWS_SECURITY_TOKEN
-
 
     if [ -z "$AWS_ACCOUNT" ] || [ -z "$MFA_TOKEN" ]
     then
@@ -60,14 +51,6 @@ assume_role () {
         echo "example: . ./assume-role.sh account-name mfa-token"
         return 1;
     else
-        if [ -z "$AWS_MFA_ARN" ]
-        then
-            echo "An AWS_MFA_ARN must be exported as environment variable"
-            echo "example: export AWS_MFA_ARN="arn:aws:iam::XXXXXXXXXXX:mfa/arbab@tendo.org""
-            return 1;
-        fi
-
-
         SESSION_NAME="$(date +"%s")_$USER@$(hostname)"
 
 
@@ -78,7 +61,7 @@ assume_role () {
 
         if RESULT=$(aws $PROFILE sts assume-role --role-arn "$ROLE_ARN" --role-session-name ${SESSION_NAME:0:32} --token-code $MFA_TOKEN --serial-number $AWS_MFA_ARN)
         then
-    export ASSUMED_ROLE=$ROLE_ARN
+            export ASSUMED_ROLE=$ROLE_ARN
             export AWS_ACCESS_KEY_ID=$(echo $RESULT | jq --raw-output .Credentials.AccessKeyId)
             export AWS_SECRET_ACCESS_KEY=$(echo $RESULT | jq --raw-output .Credentials.SecretAccessKey)
             export AWS_SECURITY_TOKEN=$(echo $RESULT | jq --raw-output .Credentials.SessionToken)
@@ -103,13 +86,6 @@ unassume_role () {
         unset AWS_SESSION_TOKEN
         unset ASSUMED_ROLE
     fi
-}
-
-
-list_roles () {
-    for a in "${AWS_ACCOUNTS[@]}"; do
-        echo $a
-    done
 }
 
 
