@@ -2,10 +2,6 @@
 This should allow you to use your MFA token to log into AWS.
 >sudo apt install awscli
 
-* Pre-reqs
-brew install jq
-pip3 install boto3
-
 ~/.aws/config:
 [default]
 region=eu-west-1
@@ -28,11 +24,11 @@ This maybe necessary if your machine time is wrong by more than a few seconds
 >sudo apt-get install ntpdate
 >sudo ntpdate ntp.ubuntu.com
 
-Add your access key and secret key to environment variables (add into .bashrc)
-export AWS_ACCESS_KEY_ID=<your id>
-export AWS_SECRET_ACCESS_KEY=<your key>
-
 * INSTALLING ANSIBLE
+on Mac:
+brew install ansible
+
+On Ubuntu:
 The default version of ansible on Ubuntu doesn't support MFA credentials
 
 >sudo apt-get install software-properties-common
@@ -44,19 +40,21 @@ The default version of ansible on Ubuntu doesn't support MFA credentials
 >pip install boto
 >ansible --version // should be > 1.1
 >sudo vi ./hosts
-Add an IP address of a server that you can access
-[local]
-localhosts
 
-[test_servers]
-34.248.154.206
+*RUNNING THE PLAYBOOKS
 
->ansible all -i ./hosts -a "/bin/echo hello" -u ubuntu
-If this works you then ansible is installed correctly
+* Pre-reqs
+brew install jq
+pip3 install boto3
 
-* Assuming a role
-. ./assume_role arn:aws:iam::56XXXXXXXXXX:role/bttv-mnb-poc-role-poweruser 123456 
-where 123456 is the current MFA token
+* first you need to assume your role
+. ./assume_role poweruser 123456 
+where "poweruser is the profile you created in ~/.aws/config
+and 123456 is the current MFA token from Google authenticator or whatever you use
 
->sudo -H ansible-playbook -i ./hosts spin_up_ubuntu_on_aws.yml -vvvvv
+Deploy everything on AWS
+ansible-playbook -i hosts deploy_network.yml
+
+Configure the Ubuntu hosts
+ansible-playbook -i ec2.py configure_customer_hosts.yml
 
