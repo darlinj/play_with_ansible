@@ -2,7 +2,7 @@
 groups {
 	global {
 		system {
-     host-name "{{ node.hostname }}";
+                        host-name "{{ node.hostname }}";
 			services {
 				ssh {
 					root-login deny-password;
@@ -66,6 +66,9 @@ system {
             yang-compliant;
         }
     }
+    ntp {
+      server 169.254.169.123
+    }
     syslog {
         user * {
             any emergency;
@@ -122,7 +125,7 @@ interfaces {
                 destination {{ tunnel.destination }};
             }
             family inet {
-                address {{ tunnel.private_ip_address }}/{{ tunnel.mask }};
+                address {{ tunnel.ip_address }}/{{ tunnel.mask }};
             }
         }
     }
@@ -149,7 +152,7 @@ routing-options {
         route 10.0.5.0/24 next-hop gr-0/0/0.0;
     }
     router-id {{ node.loopback_ip }};
-    autonomous-system 65000;
+    autonomous-system 65000;            
 }
 protocols {
     rsvp {
@@ -212,6 +215,9 @@ protocols {
             interface fxp0.0;
             interface lo0.0 {
                 passive;
+            }
+            interface all {
+                interface-type p2p;
             }
         }
     }

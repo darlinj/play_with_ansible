@@ -54,10 +54,10 @@ nodes:
           interface_name: ge-0/0/1
           mask: 24
       tunnels:
-        - interface_name: ge-0/0/0
+        - interface_name: gr-0/0/0
           source: 10.0.4.100
           destination: 10.0.4.101
-          private_ip_address: 10.0.5.100
+          ip_address: 10.0.5.100
           mask: 32
     - name: vMX2
       hostname: London.MX10003.uk
@@ -79,8 +79,8 @@ nodes:
           interface_name: ge-0/0/1
           mask: 24
       tunnels:
-        - interface_name: ge-0/0/0
+        - interface_name: gr-0/0/0
           source: 10.0.4.101
           destination: 10.0.4.100
-          private_ip_address: 10.0.5.101
+          ip_address: 10.0.5.101
           mask: 32
