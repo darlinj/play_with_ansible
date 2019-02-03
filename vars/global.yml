@@ -19,6 +19,8 @@ nodes:
       routes:
         - destination: 10.0.3.0/24
           interface: eth1
+        - destination: 10.0.2.0/24
+          next_hop: 10.0.3.101
     - name: Ubuntu2
       instance_type: t2.micro
       security_group: ansible
@@ -33,6 +35,8 @@ nodes:
       routes:
         - destination: 10.0.2.0/24
           interface: eth1
+        - destination: 10.0.3.0/24
+          next_hop: 10.0.2.100
   routers:
     - name: vMX1
       hostname: Manchester.MX10003.uk

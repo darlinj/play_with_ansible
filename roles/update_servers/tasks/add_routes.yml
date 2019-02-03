@@ -1,8 +1,9 @@
-- name: check if routes have been set
-  shell: ip route list | grep -q "{{ item.destination }}"
-  register: route_check
-  ignore_errors: true
+- debug:
+    msg: "{{ node }} info: {{ item }}"
 
-- name: setting the routes for the customer networks
-  shell: ip route add "{{ item.destination }}" dev "{{ item.interface }}"
-  when: route_check is failed
+- name: make route permenant
+  lineinfile:
+    path: /etc/network/interfaces.d/eth1.cfg
+    regexp: '^up route add -net "{{ item.destination }}"'
+    line: up route add -net "{{ item.destination }}" gw "{{ item.next_hop }}"
+  when: item.next_hop is defined

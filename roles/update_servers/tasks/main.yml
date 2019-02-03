@@ -6,9 +6,6 @@
     owner: root
     group: root
     mode: 0644
-- service:
-    name: networking
-    state: restarted
 - name: lookup node variables from array
   set_fact: 
     node: "{{ nodes.servers|selectattr('name', 'equalto', ec2_tag_Name) | list }}"
@@ -19,3 +16,6 @@
 - include: add_routes.yml
   with_items: "{{ node[0].routes }}"
 
+- service:
+    name: networking
+    state: restarted
