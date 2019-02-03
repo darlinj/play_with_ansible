@@ -15,6 +15,7 @@
     description: "{{ node.name }} network port"
     subnet_id: "{{ subnet_id }}"
     security_groups: "{{ node.security_group }}"
+    source_dest_check: no
     region: "{{ region }}"
     state: present
   register: interface
